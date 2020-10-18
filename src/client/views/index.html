@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Planner</title>
+  </head>
+  <body>
+    <h1>Travel Planner App</h1>
+    <div id="user-inputs">
+      <label for="destination">Enter your destination</label>
+      <input type="text" id="destination" placeholder="e.g. Paris" />
+      <label for="trip-dates">Trip dates</label>
+      <div id="trip-dates-container">
+        <div class="trip-dates">
+          <label for="trip-start-date">Start</label>
+          <input type="date" name="trip-start-date" id="trip-start-date" />
+        </div>
+        <div class="trip-dates">
+          <label for="trip-end-date">End</label>
+          <input type="date" name="trip-end-date" id="trip-end-date" />
+        </div>
+      </div>
+      <div>
+        <label for="note-input">Note</label>
+        <textarea
+          id="note-input"
+          placeholder="Add a note about the place for later"
+          rows="4"
+          cols="50"
+        ></textarea>
+        <button id="create-trip" type="submit">Create trip</button>
+      </div>
+    </div>
+    <h2>Your trips</h2>
+    <p id="no-trips">You have no trips yet... :(</p>
+    <div class="loader"></div>
+    <div id="trips-container"></div>
+    <script>
+      // Check that service workers are supported
+      if ('serviceWorker' in navigator) {
+        // Use the window load event to keep the page load performant
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
+  </body>
+</html>

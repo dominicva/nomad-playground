@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700&display=swap');
+
+$primary-color: #061f31;
+$secondary-color: #ff385c;
+$off-white: #f7f7f7;
+$off-black: rgb(0, 0, 12);
+
+// Border variables
+$btn-border-radius: 2rem;
+$input-border-radius: 0.25rem;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  // border: 1px solid white;
+}
+
+body {
+  background: $primary-color;
+  font-family: 'Raleway', sans-serif;
+  color: $off-white;
+  padding: 1rem;
+  max-width: 700px;
+  margin: auto;
+}
+
+h1 {
+  font-size: 2rem;
+  margin: 2rem 0;
+  letter-spacing: 1.5px;
+}
+
+h2 {
+  font-size: 1.75em;
+  margin: 1rem 0;
+  letter-spacing: 1.2px;
+}
+
+.hidden {
+  display: none;
+}
+
+#trip-dates-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  grid-column-gap: 0.5rem;
+}
+
+.trip-dates {
+  max-width: 100%;
+  font-weight: 600;
+}
+
+.trip-dates label {
+  font-size: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.loader {
+  border: 16px solid $primary-color;
+  border-radius: 50%;
+  border-top: 16px solid $secondary-color;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+  margin: 2rem auto;
+  display: none;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#trips-container {
+  width: 100%;
+}
+
+#trip-start-date {
+  margin-right: 1rem;
+}
+
+section {
+  margin: 1rem 0 3rem 0;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  max-width: 40rem;
+}
+
+.image-holder {
+  height: 400px;
+  @media (min-width: 576px) {
+    height: 320px;
+  }
+}
+
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.entry > * {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+// n.b. precedence – if .title moved above
+// .entry trip title is affected
+.title {
+  font-size: 2.5rem;
+  text-transform: capitalize;
+  letter-spacing: 1px;
+  margin: 1rem 0 0.25rem 0;
+}
+
+label {
+  display: block;
+  font-size: 1.5rem;
+  letter-spacing: 0.75px;
+  margin: 1.25rem 0 0.25rem 0;
+}
+
+input {
+  display: block;
+  height: 4rem;
+  width: 100%;
+  margin-bottom: 2rem;
+  padding: 0.5rem;
+  color: $off-black;
+  background-color: $off-white;
+  font-size: 1.25rem;
+  border: none;
+  border-radius: $input-border-radius;
+}
+
+button {
+  width: 100%;
+  // max-width: 100%;
+  height: 4rem;
+  margin: 1rem 0;
+  font-size: 1.5rem;
+  background-color: $secondary-color;
+  color: $off-white;
+  border: none;
+  border-radius: $btn-border-radius;
+}
+
+button:hover {
+  cursor: pointer;
+  box-shadow: 0px 1.2px 5px $off-white;
+}
+
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: $off-white;
+  color: $off-black;
+  font-size: 1.25rem;
+  font-family: 'Raleway', sans-serif;
+  border-radius: $input-border-radius;
+}
+/* Reset style for HTML element on active to have no border*/
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline: none;
+}
