@@ -89,32 +89,6 @@ const getPredictedWeather = async (coords, startDate, endDate) => {
   return parsedResponse;
 };
 
-const getWeatherData = async (
-  locationName,
-  startDate,
-  endDate,
-  isWithin1Week
-) => {
-  const coordsData = await getCoords(
-    baseUrlGeonames,
-    locationName,
-    apiKeyGeonames
-  );
-
-  let response;
-  if (isWithin1Week) {
-    response = await fetch(
-      `${baseUrlWeatherbitForecast}?lat=${coordsData.lat}&lon=${coordsData.lng}&key=${apiKeyWeatherbit}`
-    );
-  } else {
-    response = await fetch(
-      `${baseUrlWeatherbitPredicted}?lat=${coordsData.lat}&lon=${coordsData.lng}&start_day=${startDate}&end_day=${endDate}&key=${apiKeyWeatherbit}`
-    );
-  }
-  const parsedWeatherRespone = await response.json();
-  return parsedWeatherRespone;
-};
-
 const getImage = async (urlBase, key, placeName) => {
   const urlToFetch = `${urlBase}?key=${key}&q=${encodeURIComponent(placeName)}`;
   const response = await fetch(urlToFetch);
