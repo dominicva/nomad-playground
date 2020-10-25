@@ -1,7 +1,9 @@
 // API credentials
 // Geonames creds
-const apiKeyGeonames = '&username=domvana';
-const baseUrlGeonames = `http://api.geonames.org/findNearbyPostalCodesJSON?placename=`;
+const geonamesApi = {
+  apiKey: '&username=domvana',
+  baseUrl: `http://api.geonames.org/findNearbyPostalCodesJSON?placename=`,
+};
 
 // Weatherbit creds
 const apiKeyWeatherbit = '23bb1049d17843959a5b48f527a5e5a7';
@@ -23,18 +25,8 @@ const calcDaysBetweenDates = (start, end) => {
   return daysBetweenDates;
 };
 
-const countdown = () => {
-  const tripStartDateEl = document.getElementById('trip-start-date');
-  const daysUntilTrip = calcDaysBetweenDates(Date.now(), tripStartDateEl.value);
-  return daysUntilTrip;
-};
-
-const isTripWithin1Week = () => {
-  if (countdown() <= 7) {
-    return true;
-  } else {
-    return false;
-  }
+const isTripWithinNDays = (startDate, nDays) => {
+  return calcDaysBetweenDates(Date.now(), startDate) <= nDays;
 };
 
 const calcTripLength = () => {
@@ -50,8 +42,10 @@ const calcTripLength = () => {
 
 // Core app logic
 // gets lat/lng coordinates from Geonames api
-const getCoords = async (urlBase, placeName, key) => {
-  const response = await fetch(`${urlBase}${placeName}${key}`);
+const getCoords = async placeName => {
+  const response = await fetch(
+    `${geonamesApi.baseUrl}${placeName}${geonamesApi.apiKey}`
+  );
 
   const data = await response.json();
   const formattedData = {
@@ -62,7 +56,7 @@ const getCoords = async (urlBase, placeName, key) => {
   return formattedData;
 };
 
-const calcAvgTemp = (arr) => {
+const calcAvgTemp = arr => {
   let sum = 0;
   for (const item of arr) {
     sum += item.temp;
@@ -70,30 +64,55 @@ const calcAvgTemp = (arr) => {
   return (sum / arr.length).toFixed(1);
 };
 
-const getWeather = async (lat, lng, startDate, endDate, key) => {
-  let response;
-  if (isTripWithin1Week()) {
-    response = await fetch(
-      `${baseUrlWeatherbitForecast}?lat=${lat}&lon=${lng}&key=${key}`
-    );
+const formatWeatherData = weatherData => {
+  const formattedWeatherData = {
+    temp: calcAvgTemp(weatherData.data),
+  };
+  return formattedWeatherData;
+};
 
-    const forecastWeather = await response.json();
-    const forecastWeatherFormatted = {
-      temp: calcAvgTemp(forecastWeather.data),
-    };
-    return forecastWeatherFormatted;
+const getForecastWeather = async coords => {
+  const response = await fetch(
+    `${baseUrlWeatherbitForecast}?lat=${coords.lat}&lon=${coords.lng}&key=${apiKeyWeatherbit}`
+  );
+
+  const parsedResponse = await response.json();
+  return parsedResponse;
+};
+
+const getPredictedWeather = async (coords, startDate, endDate) => {
+  const response = await fetch(
+    `${baseUrlWeatherbitPredicted}?lat=${coords.lat}&lon=${coords.lng}&start_day=${startDate}&end_day=${endDate}&key=${apiKeyWeatherbit}`
+  );
+
+  const parsedResponse = await response.json();
+  return parsedResponse;
+};
+
+const getWeatherData = async (
+  locationName,
+  startDate,
+  endDate,
+  isWithin1Week
+) => {
+  const coordsData = await getCoords(
+    baseUrlGeonames,
+    locationName,
+    apiKeyGeonames
+  );
+
+  let response;
+  if (isWithin1Week) {
+    response = await fetch(
+      `${baseUrlWeatherbitForecast}?lat=${coordsData.lat}&lon=${coordsData.lng}&key=${apiKeyWeatherbit}`
+    );
   } else {
     response = await fetch(
-      `${baseUrlWeatherbitPredicted}?lat=${lat}&lon=${lng}&start_day=${startDate}&end_day=${endDate}&key=${key}`
+      `${baseUrlWeatherbitPredicted}?lat=${coordsData.lat}&lon=${coordsData.lng}&start_day=${startDate}&end_day=${endDate}&key=${apiKeyWeatherbit}`
     );
-
-    const predictedWeather = await response.json();
-    console.log(predictedWeather);
-    const predictedWeatherFormatted = {
-      temp: calcAvgTemp(forecastWeather.data),
-    };
-    return predictedWeatherFormatted;
   }
+  const parsedWeatherRespone = await response.json();
+  return parsedWeatherRespone;
 };
 
 const getImage = async (urlBase, key, placeName) => {
@@ -123,11 +142,23 @@ const postData = async (url = '', data = {}) => {
   }
 };
 
-const updateUI = async (data) => {
+const loaderDisplay = show => {
+  const loader = document.querySelector('.loader');
+
+  if (show === 'show') {
+    loader.style.display = 'block';
+  } else if (show === 'hide') {
+    loader.style.display = 'none';
+  } else {
+    throw new Error('check input to loaderDisplay helper function');
+  }
+};
+
+const updateUI = async data => {
   const tripsContainer = document.getElementById('trips-container');
 
   // UI cleanup
-  document.querySelector('.loader').style.display = 'none';
+  loaderDisplay('hide');
   document.getElementById('no-trips').style.display = 'none';
   document.getElementById('destination').value = '';
   document.getElementById('note-input').value = '';
@@ -150,52 +181,45 @@ const updateUI = async (data) => {
 
 const createTrip = async () => {
   const newDestination = document.getElementById('destination').value.trim();
-  const tripStartDateEl = document.getElementById('trip-start-date');
-  const tripEndDateEl = document.getElementById('trip-end-date');
+  const tripStartDate = document.getElementById('trip-start-date').value;
+  const tripEndDate = document.getElementById('trip-end-date').value;
   const note = document.getElementById('note-input').value;
 
-  const loader = document.querySelector('.loader');
-  loader.style.display = 'block';
-
-  const tripData = {};
+  loaderDisplay('show');
 
   try {
-    const coordsData = await getCoords(
-      baseUrlGeonames,
-      newDestination,
-      apiKeyGeonames
-    );
-    const weatherData = await getWeather(
-      coordsData.lat,
-      coordsData.lng,
-      // slice ==>> Weatherbit api needs dates in MM-DD format
-      tripStartDateEl.value.slice(5),
-      tripEndDateEl.value.slice(5),
-      apiKeyWeatherbit
-    );
-    tripData.weatherData = weatherData;
+    const coords = await getCoords(newDestination);
+
+    const weatherData = isTripWithinNDays(tripStartDate, 7)
+      ? await getForecastWeather(coords)
+      : await getPredictedWeather(
+          coords,
+          tripStartDate.slice(5),
+          tripEndDate.slice(5)
+        );
 
     const imageUrl = await getImage(
       baseUrlPixabay,
       apiKeyPixabay,
       newDestination
     );
-    tripData.imageUrl = imageUrl;
+
+    const formattedWeather = formatWeatherData(weatherData);
 
     await postData('http://localhost:3000/create-trip', {
-      imageUrl: tripData.imageUrl,
+      imageUrl: imageUrl,
       placeName: newDestination,
-      startDate: tripStartDateEl.value,
-      endDate: tripEndDateEl.value,
+      startDate: tripStartDate,
+      endDate: tripEndDate,
       tripLength: calcTripLength(),
-      temp: tripData.weatherData.temp,
+      temp: formattedWeather.temp,
       placeNote: note,
-    }).then((data) => {
+    }).then(data => {
       updateUI(data);
     });
   } catch (error) {
     console.log(error);
-    loader.style.display = 'none';
+    loaderDisplay('hide');
     alert(
       'Oh dear... something went wrong. Please check what you entered makes sense. If it does, I can only apologise :)'
     );
