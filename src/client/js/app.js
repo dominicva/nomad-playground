@@ -1,19 +1,21 @@
 // API credentials
-// Geonames creds
-const geonamesApi = {
-  apiKey: '&username=domvana',
-  baseUrl: `http://api.geonames.org/findNearbyPostalCodesJSON?placename=`,
+const apis = {
+  geonames: {
+    key: '&username=domvana',
+    baseUrl: 'http://api.geonames.org/findNearbyPostalCodesJSON?placename=',
+  },
+  weatherbit: {
+    key: '23bb1049d17843959a5b48f527a5e5a7',
+    baseUrl: {
+      forecast: 'http://api.weatherbit.io/v2.0/forecast/daily',
+      predicted: 'http://api.weatherbit.io/v2.0/normals',
+    },
+  },
+  pixabay: {
+    key: '18577030-c4b4775cd18f8de6fa0c1dd0a',
+    baseUrl: 'https://pixabay.com/api/',
+  },
 };
-
-// Weatherbit creds
-const apiKeyWeatherbit = '23bb1049d17843959a5b48f527a5e5a7';
-const baseUrlWeatherbitForecast =
-  'http://api.weatherbit.io/v2.0/forecast/daily';
-const baseUrlWeatherbitPredicted = 'http://api.weatherbit.io/v2.0/normals';
-
-// Pixabay api creds
-const apiKeyPixabay = '18577030-c4b4775cd18f8de6fa0c1dd0a';
-const baseUrlPixabay = 'https://pixabay.com/api/';
 
 // Helper functions
 const calcDaysBetweenDates = (start, end) => {
@@ -44,7 +46,7 @@ const calcTripLength = () => {
 // gets lat/lng coordinates from Geonames api
 const getCoords = async placeName => {
   const response = await fetch(
-    `${geonamesApi.baseUrl}${placeName}${geonamesApi.apiKey}`
+    `${apis.geonames.baseUrl}${placeName}${apis.geonames.key}`
   );
 
   const data = await response.json();
@@ -73,7 +75,7 @@ const formatWeatherData = weatherData => {
 
 const getForecastWeather = async coords => {
   const response = await fetch(
-    `${baseUrlWeatherbitForecast}?lat=${coords.lat}&lon=${coords.lng}&key=${apiKeyWeatherbit}`
+    `${apis.weatherbit.baseUrl.forecast}?lat=${coords.lat}&lon=${coords.lng}&key=${apis.weatherbit.key}`
   );
 
   const parsedResponse = await response.json();
@@ -82,7 +84,7 @@ const getForecastWeather = async coords => {
 
 const getPredictedWeather = async (coords, startDate, endDate) => {
   const response = await fetch(
-    `${baseUrlWeatherbitPredicted}?lat=${coords.lat}&lon=${coords.lng}&start_day=${startDate}&end_day=${endDate}&key=${apiKeyWeatherbit}`
+    `${apis.weatherbit.baseUrl.predicted}?lat=${coords.lat}&lon=${coords.lng}&start_day=${startDate}&end_day=${endDate}&key=${apis.weatherbit.key}`
   );
 
   const parsedResponse = await response.json();
@@ -173,8 +175,8 @@ const createTrip = async () => {
         );
 
     const imageUrl = await getImage(
-      baseUrlPixabay,
-      apiKeyPixabay,
+      apis.pixabay.baseUrl,
+      apis.pixabay.key,
       newDestination
     );
 
