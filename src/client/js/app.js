@@ -43,6 +43,16 @@ const calcTripLength = () => {
 };
 
 // Core app logic
+const fetchUserInput = () => {
+  const userInput = {
+    destination: document.getElementById('destination').value,
+    tripStartDate: document.getElementById('trip-start-date').value,
+    tripEndDate: document.getElementById('trip-end-date').value,
+    note: document.getElementById('note-input').value,
+  };
+  return userInput;
+};
+
 // gets lat/lng coordinates from Geonames api
 const getCoords = async placeName => {
   const response = await fetch(
@@ -156,40 +166,37 @@ const updateUI = async data => {
 };
 
 const createTrip = async () => {
-  const newDestination = document.getElementById('destination').value.trim();
-  const tripStartDate = document.getElementById('trip-start-date').value;
-  const tripEndDate = document.getElementById('trip-end-date').value;
-  const note = document.getElementById('note-input').value;
-
   loaderDisplay('show');
 
   try {
-    const coords = await getCoords(newDestination);
+    const userInput = fetchUserInput();
 
-    const weatherData = isTripWithinNDays(tripStartDate, 7)
+    const coords = await getCoords(userInput.destination.trim());
+
+    const weatherData = isTripWithinNDays(userInput.tripStartDate, 7)
       ? await getForecastWeather(coords)
       : await getPredictedWeather(
           coords,
-          tripStartDate.slice(5),
-          tripEndDate.slice(5)
+          userInput.tripStartDate.slice(5),
+          userInput.tripEndDate.slice(5)
         );
 
     const imageUrl = await getImage(
       apis.pixabay.baseUrl,
       apis.pixabay.key,
-      newDestination
+      userInput.destination
     );
 
     const formattedWeather = formatWeatherData(weatherData);
 
     await postData('http://localhost:3000/create-trip', {
       imageUrl: imageUrl,
-      placeName: newDestination,
-      startDate: tripStartDate,
-      endDate: tripEndDate,
+      placeName: userInput.destination,
+      startDate: userInput.tripStartDate,
+      endDate: userInput.tripEndDate,
       tripLength: calcTripLength(),
       temp: formattedWeather.temp,
-      placeNote: note,
+      placeNote: userInput.note,
     }).then(data => {
       updateUI(data);
     });
