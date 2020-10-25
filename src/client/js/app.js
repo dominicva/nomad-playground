@@ -42,6 +42,26 @@ const calcTripLength = () => {
   return tripLength;
 };
 
+const calcAvgTemp = arr => {
+  let sum = 0;
+  for (const item of arr) {
+    sum += item.temp;
+  }
+  return (sum / arr.length).toFixed(1);
+};
+
+const loaderDisplay = show => {
+  const loader = document.querySelector('.loader');
+
+  if (show === 'show') {
+    loader.style.display = 'block';
+  } else if (show === 'hide') {
+    loader.style.display = 'none';
+  } else {
+    throw new Error('check input to loaderDisplay helper function');
+  }
+};
+
 // Core app logic
 const fetchUserInput = () => {
   const userInput = {
@@ -66,14 +86,6 @@ const getCoords = async placeName => {
     lng: data.postalCodes[0].lng.toFixed(2),
   };
   return formattedData;
-};
-
-const calcAvgTemp = arr => {
-  let sum = 0;
-  for (const item of arr) {
-    sum += item.temp;
-  }
-  return (sum / arr.length).toFixed(1);
 };
 
 const formatWeatherData = weatherData => {
@@ -125,18 +137,6 @@ const postData = async (url = '', data = {}) => {
     return newData;
   } catch (error) {
     console.log(error);
-  }
-};
-
-const loaderDisplay = show => {
-  const loader = document.querySelector('.loader');
-
-  if (show === 'show') {
-    loader.style.display = 'block';
-  } else if (show === 'hide') {
-    loader.style.display = 'none';
-  } else {
-    throw new Error('check input to loaderDisplay helper function');
   }
 };
 
