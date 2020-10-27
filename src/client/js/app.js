@@ -17,7 +17,14 @@ const apis = {
   },
 };
 
-// Helper functions
+// ==>> Helper functions
+const fetchUserInput = () => ({
+  destination: document.getElementById('destination').value,
+  tripStartDate: document.getElementById('trip-start-date').value,
+  tripEndDate: document.getElementById('trip-end-date').value,
+  note: document.getElementById('note-input').value,
+});
+
 const calcDaysBetweenDates = (start, end) => {
   const startDate = new Date(start);
   const endDate = new Date(end);
@@ -29,17 +36,6 @@ const calcDaysBetweenDates = (start, end) => {
 
 const isTripWithinNDays = (startDate, nDays) => {
   return calcDaysBetweenDates(Date.now(), startDate) <= nDays;
-};
-
-const calcTripLength = () => {
-  const tripStartDateEl = document.getElementById('trip-start-date');
-  const tripEndDateEl = document.getElementById('trip-end-date');
-
-  const tripLength = calcDaysBetweenDates(
-    tripStartDateEl.value,
-    tripEndDateEl.value
-  );
-  return tripLength;
 };
 
 const calcAvgTemp = arr => {
@@ -62,16 +58,7 @@ const loaderDisplay = show => {
   }
 };
 
-// Core app logic
-const fetchUserInput = () => {
-  const userInput = {
-    destination: document.getElementById('destination').value,
-    tripStartDate: document.getElementById('trip-start-date').value,
-    tripEndDate: document.getElementById('trip-end-date').value,
-    note: document.getElementById('note-input').value,
-  };
-  return userInput;
-};
+// ==>> Core app logic
 
 // gets lat/lng coordinates from Geonames api
 const getCoords = async placeName => {
@@ -169,34 +156,35 @@ const createTrip = async () => {
   loaderDisplay('show');
 
   try {
-    const userInput = fetchUserInput();
+    const {
+      destination,
+      tripStartDate: startDate,
+      tripEndDate: endDate,
+      note,
+    } = fetchUserInput();
 
-    const coords = await getCoords(userInput.destination.trim());
+    const coords = await getCoords(destination.trim());
 
-    const weatherData = isTripWithinNDays(userInput.tripStartDate, 7)
+    const weatherData = isTripWithinNDays(startDate, 7)
       ? await getForecastWeather(coords)
-      : await getPredictedWeather(
-          coords,
-          userInput.tripStartDate.slice(5),
-          userInput.tripEndDate.slice(5)
-        );
+      : await getPredictedWeather(coords, startDate.slice(5), endDate.slice(5));
 
     const imageUrl = await getImage(
       apis.pixabay.baseUrl,
       apis.pixabay.key,
-      userInput.destination
+      destination
     );
 
     const formattedWeather = formatWeatherData(weatherData);
 
     await postData('http://localhost:3000/create-trip', {
       imageUrl: imageUrl,
-      placeName: userInput.destination,
-      startDate: userInput.tripStartDate,
-      endDate: userInput.tripEndDate,
-      tripLength: calcTripLength(),
+      placeName: destination,
+      startDate: startDate,
+      endDate: endDate,
+      tripLength: calcDaysBetweenDates(startDate, endDate),
       temp: formattedWeather.temp,
-      placeNote: userInput.note,
+      placeNote: note,
     }).then(data => {
       updateUI(data);
     });
